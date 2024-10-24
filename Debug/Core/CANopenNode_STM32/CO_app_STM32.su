@@ -1,0 +1,5 @@
+../Core/CANopenNode_STM32/CO_app_STM32.c:51:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/CANopenNode_STM32/CO_app_STM32.c:205:5:canopen_app_init	24	static
+../Core/CANopenNode_STM32/CO_app_STM32.c:267:5:canopen_app_resetCommunication	72	static
+../Core/CANopenNode_STM32/CO_app_STM32.c:356:6:canopen_app_process	16	static
+../Core/CANopenNode_STM32/CO_app_STM32.c:387:6:canopen_app_interrupt	24	static,ignoring_inline_asm

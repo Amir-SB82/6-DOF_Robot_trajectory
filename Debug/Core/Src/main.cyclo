@@ -1,0 +1,9 @@
+../Core/Src/main.c:104:20:read_SDO	5
+../Core/Src/main.c:149:20:write_SDO	6
+../Core/Src/main.c:209:5:main	23
+../Core/Src/main.c:854:6:SystemClock_Config	3
+../Core/Src/main.c:896:13:MX_CAN1_Init	2
+../Core/Src/main.c:933:13:MX_CAN2_Init	2
+../Core/Src/main.c:970:13:MX_TIM14_Init	2
+../Core/Src/main.c:1001:13:MX_GPIO_Init	1
+../Core/Src/main.c:1025:6:Error_Handler	1

@@ -1,0 +1,676 @@
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#define MAX_LINES 1351
+#define MAX_COLS 6
+#define ROWS 6
+#define COLS 2
+#define PERMUTATIONS 64
+#define INPUTSIZE 6
+
+int i,j, ii;
+void multiplyMatrices(double firstMatrix[3][3], double secondMatrix[3][3], double result[3][3]) {
+    int row, col, i;
+    for (row = 0; row < 3; row++) {
+        for (col = 0; col < 3; col++) {
+            result[row][col] = 0;
+            for (i = 0; i < 3; i++) {
+                result[row][col] += firstMatrix[row][i] * secondMatrix[i][col];
+            }
+        }
+    }
+}
+void generatePermutations(double theta_solution[ROWS][COLS], double theta_solutions[ROWS][PERMUTATIONS]) {
+	int i,j;
+    for (i = 0; i < PERMUTATIONS; ++i) {
+    	
+        for (j = 0; j < ROWS; ++j) {
+            // If the j-th bit in i is set, choose the element from the second column, else choose from the first column
+            int bit = (i >> j) & 1;
+            theta_solutions[j][i] = theta_solution[j][bit];
+        }
+    }
+}
+
+void printArray(double arr[ROWS][PERMUTATIONS]) {
+	int i,j;
+    for ( i = 0; i < ROWS; ++i) {
+        for ( j = 0; j < PERMUTATIONS; ++j) {
+            printf("%.4f ", arr[i][j]);
+        }
+        printf("\n");
+    }
+}
+int generateDegrees_throughFILE()
+{
+    // Pos=[-0.01    0.02    0.4292    2.0    1.5   -2.9612];//be soorate zir :
+//    double Pos[6] = {0.01, -0.03, 0.43, 1.8, -1.2, 1.8};
+	FILE *file = fopen("D:\\rus\\sample.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file\n");
+        return 1;
+    }
+	    FILE *output_file = fopen("D:\\rus\\output.txt", "w");
+    if (output_file == NULL) {
+        printf("Error opening output file\n");
+        return 1;
+    }
+    char line[1024];
+    double Pos[MAX_LINES][MAX_COLS];  // Changed to double
+    int i=0,j = 0;
+    
+    double Px[1351] ;
+    double Py[1351] ;
+    double Pz[1351] ;
+    double Phi[1351] ;
+    double Theta[1351] ;
+    double Psi[1351] ;
+    
+
+    while (fgets(line, sizeof(line), file) != NULL && i < MAX_LINES) {
+        char *token = strtok(line, "\t");
+        j = 0;
+        while (token != NULL && j < MAX_COLS) {
+            sscanf(token, "%lf", &Pos[i][j]);  // Changed to %lf for double
+            token = strtok(NULL, "\t");
+            Px[i] = Pos[i][0];
+		    Py[i] = Pos[i][1];
+		    Pz[i] = Pos[i][2];
+		    Phi[i] = Pos[i][3] ;
+		    Theta[i] = Pos[i][4] ;
+		    Psi[i] = Pos[i][5];
+            j++;
+        }
+        i++;
+    }
+
+    fclose(file);
+      
+//     for (i = 0; i < MAX_LINES; i++) {
+//         
+//             printf("Px[%d] = %e\n", i, Px[i]);  // Changed to %e for scientific notation
+//         
+//     }
+    // Px[0]=0.0100;
+    // Py[0]=-0.0300;
+    // Pz[0]=0.4300;
+    // Phi[0]=0.0314;
+    // Theta[0]=-0.0209;
+    // Psi[0]= 0.0314;
+//    printf("Px: %e rad,Py: %e rad, Pz: %e rad,Phi: %e rad, Theta: %e rad, Psi: %e rad\n",Px[0],Py[0],Pz[0], Phi[0], Theta[0], Psi[0]);
+     double x[8] = {
+        0.7948,
+        0.3210,
+        0.7034,
+        0.1339,
+        0.4897,
+        0.1169,
+        -26.0121,
+        0.0
+    };
+    double eye[9] = {1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0};
+    double alph[6] = {
+        4.1888,
+        3.1416,
+        0.0,
+        5.2360,
+        2.0944,
+        1.0472
+    };
+    double su = 0.6139;
+    double r_base = x[0];
+    double d_base = x[1];
+    double r_platform = x[2];
+    double d_platform = x[3];
+    double Z_home = x[4];
+    double a = x[5];
+    double theta_solution0[6];
+    for (i = 0; i < 6; i++) {
+        theta_solution0[i] = x[6] * M_PI / 180.0;
+    }
+    double phi[6];
+    for (i = 0; i < 6; i++) {
+        phi[i] = x[7] * (i % 2 == 0 ? 1.0 : -1.0) * M_PI / 180.0;
+    }
+    double Rot = eye[2];
+    double alph1 = alph[0];
+    double alph2 = alph[1];
+    double alph3 = alph[2];
+    double alph4 = alph[3];
+    double alph5 = alph[4];
+    double alph6 = alph[5];
+    
+    double phi1  = phi[0];
+    double phi2  = phi[1];
+    double phi3  = phi[2];
+    double phi4  = phi[3];
+    double phi5  = phi[4];
+    double phi6  = phi[5];
+    
+    double R[3][6];
+    R[0][0] = +r_base*cos(M_PI/6)+d_base*cos(M_PI/3);
+    R[0][1] = +r_base*cos(M_PI/6)-d_base*cos(M_PI/3);
+    R[0][2] = -r_base*cos(M_PI/6)+d_base*cos(M_PI/3);
+    R[0][3] = -r_base*cos(M_PI/6)-d_base*cos(M_PI/3);
+    R[0][4] = -d_base;
+    R[0][5] = +d_base;
+
+    R[1][0] = +r_base*sin(M_PI/6)-d_base*sin(M_PI/3);
+    R[1][1] = +r_base*sin(M_PI/6)+d_base*sin(M_PI/3);
+    R[1][2] = +r_base*sin(M_PI/6)+d_base*sin(M_PI/3);
+    R[1][3] =+r_base*sin(M_PI/6)-d_base*sin(M_PI/3);
+    R[1][4] = -r_base;
+    R[1][5] = -r_base;
+
+    R[2][0] = 0.0;
+    R[2][1] = 0.0;
+    R[2][2] = 0.0;
+    R[2][3] = 0.0;
+    R[2][4] = 0.0;
+    R[2][5] = 0.0;
+ double u[3][6];
+
+    u[0][0] = +r_platform*cos(M_PI/6)+d_platform*cos(M_PI/3);
+    u[0][1] = +d_platform;
+    u[0][2] = -d_platform;
+    u[0][3] = -r_platform*cos(M_PI/6)-d_platform*cos(M_PI/3);
+    u[0][4] = -r_platform*cos(M_PI/6)+d_platform*cos(M_PI/3);
+    u[0][5] = r_platform*cos(M_PI/6)-d_platform*cos(M_PI/3);
+
+    u[1][0] = -r_platform*sin(M_PI/6)+d_platform*sin(M_PI/3);
+    u[1][1] = +r_platform;
+    u[1][2] = +r_platform;
+    u[1][3] =-r_platform*sin(M_PI/6)+d_platform*sin(M_PI/3);
+    u[1][4] = -r_platform*sin(M_PI/6)-d_platform*sin(M_PI/3);
+    u[1][5] = -r_platform*sin(M_PI/6)-d_platform*sin(M_PI/3);
+
+    u[2][0] = 0.0;
+    u[2][1] = 0.0;
+    u[2][2] = 0.0;
+    u[2][3] = 0.0;
+    u[2][4] = 0.0;
+    u[2][5] = 0.0;
+    
+    double zeta[3][6];
+   zeta[0][0] = 0.8660;
+    zeta[0][1] = 0.0;
+    zeta[0][2] = 0.0;
+    zeta[0][3] = -0.8660;
+    zeta[0][4] = -0.8660;
+    zeta[0][5] = 0.8660;
+    
+    zeta[1][0] = -0.5;
+    zeta[1][1] = 1.0;
+    zeta[1][2] = 1.0;
+    zeta[1][3] = -0.5;
+    zeta[1][4] = -0.5;
+    zeta[1][5] = -0.5;
+    
+    
+    zeta[2][0] = 0.0;
+    zeta[2][1] = 0.0;
+    zeta[2][2] = 0.0;
+    zeta[2][3] = 0.0;
+    zeta[2][4] = 0.0;
+    zeta[2][5] = 0.0;
+    
+    /////////////////////////////////////////////////////////////////
+    int k;
+    double Rx[3][3];
+    double Ry[3][3];
+    double Rz[3][3];
+    double R_ZYX[3][3];
+ for(k=0;k<1351;k++){
+ 	
+       // for (i = 0; i < MAX_LINES; i++) {
+    //     for (j = 0; j < MAX_COLS; j++) {
+    //         printf("Pos[%d][%d] = %e\n", i, j, Pos[i][j]);  // Changed to %e for scientific notation   }
+    // }
+    //  
+//     Px[0]=0.0100;
+//     Py[0]=-0.0300;
+//     Pz[0]=0.4300;
+//     Phi[0]=1.8* M_PI / 180.0;
+//     Theta[0]=-1.2* M_PI / 180.0;
+//     Psi[0]= 1.8*M_PI / 180.0;
+    //  printf("Px: %f rad,Py: %f rad, Pz: %f rad,Phi: %f rad, Theta: %f rad, Psi: %f rad\n",Px[0],Py[0],Pz[0], Phi[0], Theta[0], Psi[0]);
+    Rx[0][0] = 1.0;
+    Rx[0][1] = 0.0;
+    Rx[0][2] = 0.0;
+    
+    Rx[1][0] = 0.0;
+    Rx[1][1] = cos(Phi[k]);
+    Rx[1][2] = -sin(Phi[k]);
+//   printf("cos[Phi[k]]: %e rad\n",cos(Phi[k]));
+    Rx[2][0] = 0.0;
+    Rx[2][1] = sin(Phi[k]);
+    Rx[2][2] = cos(Phi[k]);
+//    printf("sin[Phi[k]]: %e rad\n",sin(Phi[k]));
+//         printf("R_X : ");
+//     printf("\n");
+//      for (i = 0; i < 3; i++) {
+//      for (j = 0; j < 3; j++) {
+//          printf("%e ", Rx[i][j]);
+//      }
+//      printf("\n");
+//  }
+    Ry[0][0] = cos(Theta[k]);
+    Ry[0][1] = 0.0;
+    Ry[0][2] = sin(Theta[k]);
+    
+    Ry[1][0] = 0.0;
+    Ry[1][1] = 1.0;
+    Ry[1][2] = 0.0;
+    
+    Ry[2][0] = -sin(Theta[k]);
+    Ry[2][1] = 0.0;
+    Ry[2][2] = cos(Theta[k]);
+//         printf("R_Y : ");
+//     printf("\n");
+//      for (i = 0; i < 3; i++) {
+//      for (j = 0; j < 3; j++) {
+//          printf("%e ", Ry[i][j]);
+//      }
+//      printf("\n");
+//  }
+    Rz[0][0] = cos(Psi[k]);
+    Rz[0][1] = -sin(Psi[k]);
+    Rz[0][2] = 0.0;
+    
+    Rz[1][0] = sin(Psi[k]);
+    Rz[1][1] = cos(Psi[k]);
+    Rz[1][2] = 0.0;
+    
+    Rz[2][0] = 0.0;
+    Rz[2][1] = 0.0;
+    Rz[2][2] = 1.0;
+//             printf("R_z : ");
+//     printf("\n");
+//      for (i = 0; i < 3; i++) {
+//      for (j = 0; j < 3; j++) {
+//          printf("%e ", Rz[i][j]);
+//      }
+//      printf("\n");
+//  }
+    //zyx
+    double intermediateResult[3][3];  // To store the result of Ry * Rx
+    // Perform the multiplication Ry * Rx
+    multiplyMatrices(Ry, Rx, intermediateResult);
+    // Perform the multiplication Rz * intermediateResult
+    multiplyMatrices(Rz, intermediateResult, R_ZYX);
+//         printf("R_ZYX : ");
+//     printf("\n");
+//      for (i = 0; i < 3; i++) {
+//      for (j = 0; j < 3; j++) {
+//          printf("%e ", R_ZYX[i][j]);
+//      }
+//      printf("\n");
+//  }
+    double U[3][6] = {{0.0}};
+    double q[3][6] = {{0.0}};
+    double gamma[3][6] = {{0.0}};
+    double theta_solution[6][2] = {{0.0}};
+    double term1, term2;
+    int ii=0;
+    for (ii = 0; ii < 6; ii++) {
+        for (i = 0; i < 3; i++) {
+            U[i][ii] = 0.0;
+            for (j = 0; j < 3; j++) {
+                U[i][ii] += R_ZYX[i][j] * u[j][ii];
+            }
+            if(i == 0){
+            	U[i][ii] +=Px[k];
+			}
+			else if(i==1) {
+				U[i][ii] +=Py[k];
+			}
+			else{
+				U[i][ii] +=Pz[k];
+			}
+           
+        }
+        for (i = 0; i < 3; i++) {
+            q[i][ii] = 0.0;
+            for (j = 0; j < 3; j++) {
+                q[i][ii] += R_ZYX[i][j] * u[j][ii];
+            }
+        }
+        for (i = 0; i < 3; i++) {
+            gamma[i][ii] = U[i][ii] - R[i][ii];
+        }
+        double term2 = a * gamma[0][ii] * cos(alph[ii]) + a * gamma[1][ii] * sin(alph[ii]);
+        double term1 = a * gamma[0][ii] * sin(alph[ii]) * sin(phi[ii]) - a * gamma[1][ii] * cos(alph[ii]) * sin(phi[ii]) + a * gamma[2][ii] * cos(phi[ii]);
+        double term3 = 0.5 * (gamma[0][ii] * gamma[0][ii] + gamma[1][ii] * gamma[1][ii] + gamma[2][ii] * gamma[2][ii] + a * a - su * su);
+        double Angle1 = asin(term3 / sqrt(term1 * term1 + term2 * term2));
+        double Angle2 = M_PI - Angle1;
+        theta_solution[ii][0] = Angle1 - atan2(term2, term1) ;
+         theta_solution[ii][1] = Angle2 - atan2(term2, term1) ;
+    }
+    double theta_solutions[ROWS][PERMUTATIONS];
+    generatePermutations(theta_solution, theta_solutions);
+    //  printf("Generated Permutations:\n");
+    // printArray(theta_solutions);
+    double Norm[64] = {0.0};
+    double min_Norm = INFINITY;
+    int min_index = -1;
+    // Calculate Norm
+    for (ii = 0; ii < 64; ii++) {
+        for (i = 0; i < 6; i++) {
+            Norm[ii] += pow(theta_solutions[i][ii] - theta_solution0[i], 2);
+        }
+        Norm[ii] = sqrt(Norm[ii]);
+    }
+    // Find the minimum Norm
+    for (ii = 0; ii < 6; ii++) {
+        if (Norm[ii] < min_Norm) {
+            min_Norm = Norm[ii];
+            min_index = ii;
+        }
+    }
+    // Print theta
+    printf("Theta [Degree]:\n %d",k);
+    for (i = 0; i < 6; i++) {
+        printf("%f ", theta_solutions[i][min_index] );
+    }
+    printf("\n");
+
+
+    // ...
+
+    // Print theta to the output file
+    fprintf(output_file, "Theta [Degree]:\n");
+    for (i = 0; i < 6; i++) {
+        fprintf(output_file, "%f ", theta_solutions[i][min_index]);
+    }
+    fprintf(output_file, "\n");
+
+    // Close the output file
+    
+   }
+   fclose(output_file);
+	return 0;
+}
+double* generateDegrees(double Pos[], int size){
+//	double Pos[6];
+//	for(i=0;i<6;i++){
+//		Pos[i]=arr[i];
+//	}
+//    double Pos[6] = {0.01, -0.03, 0.43, 1.8, -1.2, 1.8};
+
+    double Px = Pos[0];
+    double Py = Pos[1];
+    double Pz = Pos[2];
+    double Phi = Pos[3] * M_PI / 180.0;//1.8* M_PI / 180.0
+    double Theta = Pos[4] * M_PI / 180.0;//-1.2* M_PI / 180.0
+    double Psi = Pos[5] * M_PI / 180.0;//1.8*M_PI / 180.0
+//    printf("%lf", Px);
+    int i,j;
+//    printf("Px: %.4f rad,Py: %.4f rad,Pz: %.4f rad,Phi: %.4f rad, Theta: %.4f rad, Psi: %.4f rad\n",Px,Py,Pz, Phi, Theta, Psi);
+    double x[8] = {
+        0.7948,
+        0.3210,
+        0.7034,
+        0.1339,
+        0.4897,
+        0.1169,
+        -26.0121,
+        0.0
+    };
+    double eye[9] = {1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0};
+    double alph[6] = {
+        4.1888,
+        3.1416,
+        0.0,
+        5.2360,
+        2.0944,
+        1.0472
+    };
+    ////////////////////////////////////////////////////////
+    double su = 0.6139;
+    double r_base = x[0];
+    double d_base = x[1];
+    double r_platform = x[2];
+    double d_platform = x[3];
+    double Z_home = x[4];
+    double a = x[5];
+    /////////////////////////////////////////////////////
+    //theta_solution0=x(7)*[1 1 1 1 1 1]*pi/180; as follow:
+    double theta_solution0[6];
+    for (i = 0; i < 6; i++) {
+        theta_solution0[i] = x[6] * M_PI / 180.0;
+    }
+
+    //phi=x(8)*[1  -1    1   -1     1   -1  ]*pi/180;  as follow :
+    double phi[6];
+    for (i = 0; i < 6; i++) {
+        phi[i] = x[7] * (i % 2 == 0 ? 1.0 : -1.0) * M_PI / 180.0;
+    }
+
+    //Rot= eye(3);
+    double Rot = eye[2];
+    // alph1=alph(1); alph2=alph(2); alph3=alph(3); alph4=alph(4); alph5=alph(5); alph6=alph(6);
+    // phi1=phi(1); phi2=phi(2); phi3=phi(3); phi4=phi(4); phi5=phi(5); phi6=phi(6); as follow :
+    double alph1 = alph[0];
+    double alph2 = alph[1];
+    double alph3 = alph[2];
+    double alph4 = alph[3];
+    double alph5 = alph[4];
+    double alph6 = alph[5];
+    
+    double phi1  = phi[0];
+    double phi2  = phi[1];
+    double phi3  = phi[2];
+    double phi4  = phi[3];
+    double phi5  = phi[4];
+    double phi6  = phi[5];
+    double R[3][6];
+    R[0][0] = +r_base*cos(M_PI/6)+d_base*cos(M_PI/3);
+    R[0][1] = +r_base*cos(M_PI/6)-d_base*cos(M_PI/3);
+    R[0][2] = -r_base*cos(M_PI/6)+d_base*cos(M_PI/3);
+    R[0][3] = -r_base*cos(M_PI/6)-d_base*cos(M_PI/3);
+    R[0][4] = -d_base;
+    R[0][5] = +d_base;
+
+    R[1][0] = +r_base*sin(M_PI/6)-d_base*sin(M_PI/3);
+    R[1][1] = +r_base*sin(M_PI/6)+d_base*sin(M_PI/3);
+    R[1][2] = +r_base*sin(M_PI/6)+d_base*sin(M_PI/3);
+    R[1][3] =+r_base*sin(M_PI/6)-d_base*sin(M_PI/3);
+    R[1][4] = -r_base;
+    R[1][5] = -r_base;
+
+    R[2][0] = 0.0;
+    R[2][1] = 0.0;
+    R[2][2] = 0.0;
+    R[2][3] = 0.0;
+    R[2][4] = 0.0;
+    R[2][5] = 0.0;
+ double u[3][6];
+
+    u[0][0] = +r_platform*cos(M_PI/6)+d_platform*cos(M_PI/3);
+    u[0][1] = +d_platform;
+    u[0][2] = -d_platform;
+    u[0][3] = -r_platform*cos(M_PI/6)-d_platform*cos(M_PI/3);
+    u[0][4] = -r_platform*cos(M_PI/6)+d_platform*cos(M_PI/3);
+    u[0][5] = r_platform*cos(M_PI/6)-d_platform*cos(M_PI/3);
+
+    u[1][0] = -r_platform*sin(M_PI/6)+d_platform*sin(M_PI/3);
+    u[1][1] = +r_platform;
+    u[1][2] = +r_platform;
+    u[1][3] =-r_platform*sin(M_PI/6)+d_platform*sin(M_PI/3);
+    u[1][4] = -r_platform*sin(M_PI/6)-d_platform*sin(M_PI/3);
+    u[1][5] = -r_platform*sin(M_PI/6)-d_platform*sin(M_PI/3);
+
+    u[2][0] = 0.0;
+    u[2][1] = 0.0;
+    u[2][2] = 0.0;
+    u[2][3] = 0.0;
+    u[2][4] = 0.0;
+    u[2][5] = 0.0;
+    double zeta[3][6];
+   zeta[0][0] = 0.8660;
+    zeta[0][1] = 0.0;
+    zeta[0][2] = 0.0;
+    zeta[0][3] = -0.8660;
+    zeta[0][4] = -0.8660;
+    zeta[0][5] = 0.8660;
+    
+    zeta[1][0] = -0.5;
+    zeta[1][1] = 1.0;
+    zeta[1][2] = 1.0;
+    zeta[1][3] = -0.5;
+    zeta[1][4] = -0.5;
+    zeta[1][5] = -0.5;
+    
+    
+    zeta[2][0] = 0.0;
+    zeta[2][1] = 0.0;
+    zeta[2][2] = 0.0;
+    zeta[2][3] = 0.0;
+    zeta[2][4] = 0.0;
+    zeta[2][5] = 0.0;
+
+    double Rx[3][3];
+    double Ry[3][3];
+    double Rz[3][3];
+    double R_ZYX[3][3];
+    
+    Rx[0][0] = 1.0;
+    Rx[0][1] = 0.0;
+    Rx[0][2] = 0.0;
+//     printf("cos[Phi[k]]: %e rad\n",cos(Phi));
+    Rx[1][0] = 0.0;
+    Rx[1][1] = cos(Phi);
+    Rx[1][2] = -sin(Phi);
+//    printf("sin[Phi[k]]: %e rad\n",sin(Phi));
+    Rx[2][0] = 0.0;
+    Rx[2][1] = sin(Phi);
+    Rx[2][2] = cos(Phi);
+//    printf("R_X : ");
+//    printf("\n");
+//     for (i = 0; i < 3; i++) {
+//     for (j = 0; j < 3; j++) {
+//         printf("%e ", Rx[i][j]);
+//     }
+//     printf("\n");
+// }
+    Ry[0][0] = cos(Theta);
+    Ry[0][1] = 0.0;
+    Ry[0][2] = sin(Theta);
+    
+    Ry[1][0] = 0.0;
+    Ry[1][1] = 1.0;
+    Ry[1][2] = 0.0;
+    
+    Ry[2][0] = -sin(Theta);
+    Ry[2][1] = 0.0;
+    Ry[2][2] = cos(Theta);
+//            printf("R_Y : ");
+//    printf("\n");
+//     for (i = 0; i < 3; i++) {
+//     for (j = 0; j < 3; j++) {
+//         printf("%e ", Ry[i][j]);
+//     }
+//     printf("\n");
+// }
+    Rz[0][0] = cos(Psi);
+    Rz[0][1] = -sin(Psi);
+    Rz[0][2] = 0.0;
+    
+    Rz[1][0] = sin(Psi);
+    Rz[1][1] = cos(Psi);
+    Rz[1][2] = 0.0;
+    
+    Rz[2][0] = 0.0;
+    Rz[2][1] = 0.0;
+    Rz[2][2] = 1.0;
+//                printf("R_z : ");
+//    printf("\n");
+//     for (i = 0; i < 3; i++) {
+//     for (j = 0; j < 3; j++) {
+//         printf("%e ", Rz[i][j]);
+//     }
+//     printf("\n");
+// }
+    //zyx
+  
+    double intermediateResult[3][3];  // To store the result of Ry * Rx
+
+    // Perform the multiplication Ry * Rx
+    multiplyMatrices(Ry, Rx, intermediateResult);
+    
+    // Perform the multiplication Rz * intermediateResult
+    multiplyMatrices(Rz, intermediateResult, R_ZYX);
+//    printf("R_ZYX : ");
+//    printf("\n");
+//     for (i = 0; i < 3; i++) {
+//     for (j = 0; j < 3; j++) {
+//         printf("%f ", R_ZYX[i][j]);
+//     }
+//     printf("\n");
+// }
+    double U[3][6] = {{0.0}};
+    double q[3][6] = {{0.0}};
+    double gamma[3][6] = {{0.0}};
+    double theta_solution[6][2] = {{0.0}};
+    double term1, term2;
+    for (ii = 0; ii < 6; ii++) {
+        // U(:, ii) = R_ZYX * u(:, ii) + [Px; Py; Pz]
+        for (i = 0; i < 3; i++) {
+            U[i][ii] = 0.0;
+            for (j = 0; j < 3; j++) {
+                U[i][ii] += R_ZYX[i][j] * u[j][ii];
+            }
+            U[i][ii] += (i == 0) ? Px : (i == 1) ? Py : Pz;
+        }
+
+        // q(:, ii) = R_ZYX * u(:, ii)
+        for (i = 0; i < 3; i++) {
+            q[i][ii] = 0.0;
+            for (j = 0; j < 3; j++) {
+                q[i][ii] += R_ZYX[i][j] * u[j][ii];
+            }
+        }
+
+        // gamma(:, ii) = U(:, ii) - R(:, ii)
+        for (i = 0; i < 3; i++) {
+            gamma[i][ii] = U[i][ii] - R[i][ii];
+        }
+
+        double term2 = a * gamma[0][ii] * cos(alph[ii]) + a * gamma[1][ii] * sin(alph[ii]);
+        double term1 = a * gamma[0][ii] * sin(alph[ii]) * sin(phi[ii]) - a * gamma[1][ii] * cos(alph[ii]) * sin(phi[ii]) + a * gamma[2][ii] * cos(phi[ii]);
+        double term3 = 0.5 * (gamma[0][ii] * gamma[0][ii] + gamma[1][ii] * gamma[1][ii] + gamma[2][ii] * gamma[2][ii] + a * a - su * su);
+        double Angle1 = asin(term3 / sqrt(term1 * term1 + term2 * term2));
+        double Angle2 = M_PI - Angle1;
+        theta_solution[ii][0] = Angle1 - atan2(term2, term1) ;
+         theta_solution[ii][1] = Angle2 - atan2(term2, term1) ;
+    }
+    double theta_solutions[ROWS][PERMUTATIONS];
+    generatePermutations(theta_solution, theta_solutions);
+    double Norm[64] = {0.0};
+    double min_Norm = INFINITY;
+    int min_index = -1;
+    // Calculate Norm
+    for (ii = 0; ii < 64; ii++) {
+        for (i = 0; i < 6; i++) {
+            Norm[ii] += pow(theta_solutions[i][ii] - theta_solution0[i], 2);
+        }
+        Norm[ii] = sqrt(Norm[ii]);
+    }
+    
+    // Find the minimum Norm
+    for (ii = 0; ii < 6; ii++) {
+        if (Norm[ii] < min_Norm) {
+            min_Norm = Norm[ii];
+            min_index = ii;
+        }
+    }
+    double out[6];
+    printf("Theta [Degree]:\n");
+    for (i = 0; i < 6; i++) {
+        printf("%f ", theta_solutions[i][min_index]);
+        out[i] = theta_solutions[i][min_index];
+    }
+    printf("\n");
+    return out;
+}
